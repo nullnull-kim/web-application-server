@@ -15,7 +15,11 @@
 * 각 요구사항을 구현하는 것이 중요한 것이 아니라 구현 과정을 통해 학습한 내용을 인식하는 것이 배움에 중요하다. 
 
 ### 요구사항 1 - http://localhost:8080/index.html로 접속시 응답
-* 
+* LoggerFactory를 통해 log를 남기는 방법
+* main method로 port를 받는 방법
+* java.net.Socket 을 통해 클라이언트의 연결을 확인하는 방법
+* Files.readAllBytes() method를 통해 byte를 전달하는 방법
+* DataOutputStream로 사용자에게 데이터를 반환하는 방법
 
 ### 요구사항 2 - get 방식으로 회원가입
 * 
