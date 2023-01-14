@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 public class HttpRequestUtils {
 
     public static String getUrlAndQuery(String firstLine) {
+        if(firstLine == null) return null;
         String[] splited = firstLine.split(" ");
         if(splited.length != 3 ) return null;
         String method = splited[0];
