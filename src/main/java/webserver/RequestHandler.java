@@ -2,7 +2,6 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.URL;
 import java.nio.file.Files;
 import java.util.Map;
 
@@ -11,7 +10,6 @@ import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
-import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -32,54 +30,39 @@ public class RequestHandler extends Thread {
             String line = br.readLine();
 
             String url = HttpRequestUtils.getUrl(line);
-            byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            DataOutputStream dos = new DataOutputStream(out);
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            if (url.equals("/user/create")) {
+                byte[] body = "Created".getBytes();
+                DataOutputStream dos = new DataOutputStream(out);
+                response200Header(dos, body.length);
+                responseBody(dos, body);
+            } else if (url == null || url.equals("/") || url.equals("")){
+                byte[] body = "Hello World".getBytes();
+                DataOutputStream dos = new DataOutputStream(out);
+                response200Header(dos, body.length);
+                responseBody(dos, body);
+            } else {
+                byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+                DataOutputStream dos = new DataOutputStream(out);
+                response200Header(dos, body.length);
+                responseBody(dos, body);
+            }
 
-            /*while (!"".equals(line)) {
+            while (!"".equals(line)) {
                 log.debug("header : {}", line);
                 line = br.readLine();
                 if (line == null) return;
-            }*/
+            }
 
-//            for (; ; ) {
-//                String bufferedReaderLine = br.readLine();
-//                if(br == null || bufferedReaderLine.equals("")) return;
-//                System.out.println("bufferedReaderLine = " + bufferedReaderLine);
-//                if (bufferedReaderLine.startsWith("POST") || bufferedReaderLine.startsWith("GET")) {
-//                    String[] tokens = bufferedReaderLine.split(" ");
-//                    String method = tokens[0];
-//                    String urlNQuery = tokens[1];
-//                    String url = urlNQuery.split("[?]")[0];
-//                    if (url.equals("/user/create") && method.equals("GET")) {
-//                        if (urlNQuery.contains("?")) {
-//                            String query = urlNQuery.split("[?]")[1];
-//                            Map<String, String> keyAndValue = HttpRequestUtils.parseQueryString(query);
-//                            String userId = keyAndValue.get("userId");
-//                            String password = keyAndValue.get("password");
-//                            String name = keyAndValue.get("name");
-//                            String email = keyAndValue.get("email");
-//                            User user = new User(userId, password, name, email);
-//                            DataBase.addUser(user);
-//                        }
-//                        DataOutputStream dos = new DataOutputStream(out);
-//                        byte[] body = "Hello World".getBytes();
-//                        response200Header(dos, body.length);
-//                        responseBody(dos, body);
-//                    } else {
-//                        byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-//                        DataOutputStream dos = new DataOutputStream(out);
-//                        response200Header(dos, body.length);
-//                        responseBody(dos, body);
-//                    }
-//                }else {
-////                    DataOutputStream dos = new DataOutputStream(out);
-////                    byte[] body = "Hello World".getBytes();
-////                    response200Header(dos, body.length);
-////                    responseBody(dos, body);
-//                }
-//            }
+            String query = HttpRequestUtils.getQuery(line);
+            if (query != null) {
+                Map<String, String> queryMap = HttpRequestUtils.parseQueryString(query);
+                String userId = queryMap.get("userId");
+                String password = queryMap.get("password");
+                String name = queryMap.get("name");
+                String email = queryMap.get("email");
+                User user = new User(userId, password, name, email);
+                DataBase.addUser(user);
+            }
         } catch (IOException e) {
             log.error(e.getMessage());
         }

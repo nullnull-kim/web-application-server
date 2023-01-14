@@ -9,12 +9,29 @@ import com.google.common.collect.Maps;
 
 public class HttpRequestUtils {
 
-    public static String getUrl(String firstLine) {
+    public static String getUrlAndQuery(String firstLine) {
         String[] splited = firstLine.split(" ");
-        if(splited.length != 3 ) throw new RuntimeException();
+        if(splited.length != 3 ) return null;
         String method = splited[0];
         String urlNQuery = splited[1];
         return urlNQuery;
+    }
+
+    public static String getQuery(String firstLine) {
+        String urlAndQuery = getUrlAndQuery(firstLine);
+        if(urlAndQuery == null || !urlAndQuery.contains("?")) return null;
+        String query = urlAndQuery.split("[?]")[1];
+        return query;
+    }
+
+    public static String getUrl(String firstLine) {
+        String urlAndQuery = getUrlAndQuery(firstLine);
+        if (urlAndQuery.contains("?")) {
+            String url = urlAndQuery.split("[?]")[0];
+            return url;
+        } else if (urlAndQuery != null && !urlAndQuery.contains("?")) {
+            return urlAndQuery;
+        } else return null;
     }
 
     /**
