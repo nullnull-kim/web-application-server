@@ -56,6 +56,11 @@ public class RequestHandler extends Thread {
                 DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
+            } else if (url.equals("/user/login")) {
+                String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
+                log.debug("requestBody : {}", requestBody);
+                DataOutputStream dos = new DataOutputStream(out);
+                loginProcess(dos, requestBody);
             } else {
                 body = Files.readAllBytes(new File("./webapp" + url).toPath());
                 DataOutputStream dos = new DataOutputStream(out);
@@ -64,6 +69,24 @@ public class RequestHandler extends Thread {
             }
         } catch (IOException e) {
             log.error(e.getMessage());
+        }
+    }
+
+    private void loginProcess(DataOutputStream dos, String requestBody) {
+        Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
+        String userId = params.get("userId");
+        String password = params.get("password");
+        User user = DataBase.findUserById(userId);
+
+        if (user == null) {
+            log.error("id not found");
+            response404Header(dos);
+        } else if (user.getPassword().equals(password)) {
+            log.debug("login success");
+            response302HeaderWithCookie(dos, null, "logined=true");
+        } else {
+            log.error("password not matched");
+            response401Header(dos);
         }
     }
 
@@ -85,6 +108,46 @@ public class RequestHandler extends Thread {
             // Location: http://www.iana.org/domains/example/
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: /index.html \r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302HeaderWithLocation(DataOutputStream dos, String location) {
+        if(location == null) location = "/index.html";
+        try {
+            // https://en.wikipedia.org/wiki/HTTP_302
+            // HTTP/1.1 302 Found
+            // Location: http://www.iana.org/domains/example/
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: "+ location +" \r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302HeaderWithCookie(DataOutputStream dos, String location, String cookie) {
+        try {
+            this.response302HeaderWithLocation(dos, location);
+            dos.writeBytes("Set-Cookie: " + cookie + " \r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response404Header(DataOutputStream dos) {
+        try {
+            // https://stackoverflow.com/questions/2769371/404-header-http-1-0-or-1-1
+            dos.writeBytes("HTTP/1.1 404 Not Found \r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response401Header(DataOutputStream dos) {
+        try {
+            // https://developer.mozilla.org/ko/docs/Web/HTTP/Status/401
+            dos.writeBytes("HTTP/1.1 401 Unauthorized \r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
