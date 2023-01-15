@@ -1,6 +1,7 @@
 package webserver;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -61,6 +62,11 @@ public class RequestHandler extends Thread {
                 log.debug("requestBody : {}", requestBody);
                 DataOutputStream dos = new DataOutputStream(out);
                 loginProcess(dos, requestBody);
+            } else if (url.endsWith(".css")){
+                body = Files.readAllBytes(new File("./webapp" + url).toPath());
+                DataOutputStream dos = new DataOutputStream(out);
+                response200CSSHeader(dos, body.length);
+                responseBody(dos, body);
             } else {
                 body = Files.readAllBytes(new File("./webapp" + url).toPath());
                 DataOutputStream dos = new DataOutputStream(out);
@@ -94,6 +100,17 @@ public class RequestHandler extends Thread {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response200CSSHeader(DataOutputStream dos, int lengthOfBodyContent) {
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes("Content-Type: text/css \r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
