@@ -4,7 +4,9 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import db.DataBase;
@@ -43,33 +45,50 @@ public class RequestHandler extends Thread {
                 String[] headerTokens = line.split(": ");
                 if(headerTokens.length == 2) headers.put(headerTokens[0], headerTokens[1]);
             }
-
+            DataOutputStream dos = new DataOutputStream(out);
             if (url.startsWith("/user/create")) {
                 String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
                 log.debug("requestBody : {}", requestBody);
                 Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
                 User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
                 DataBase.addUser(user);
-                DataOutputStream dos = new DataOutputStream(out);
                 response302Header(dos);
             } else if (url == null || url.equals("/") || url.equals("")){
                 body = "Hello World".getBytes();
-                DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
             } else if (url.equals("/user/login")) {
                 String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
                 log.debug("requestBody : {}", requestBody);
-                DataOutputStream dos = new DataOutputStream(out);
                 loginProcess(dos, requestBody);
             } else if (url.endsWith(".css")){
                 body = Files.readAllBytes(new File("./webapp" + url).toPath());
-                DataOutputStream dos = new DataOutputStream(out);
                 response200CSSHeader(dos, body.length);
+                responseBody(dos, body);
+            } else if (url.startsWith("/user/list")) {
+                String cookieHeader = headers.get("Cookie");
+                Map<String, String> cookies = HttpRequestUtils.parseCookies(cookieHeader);
+                String loginedCookie = cookies.get("logined");
+                if (Boolean.parseBoolean(loginedCookie)) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("<h1>user list</h1>");
+                    Iterator<User> iterator = DataBase.findAll().iterator();
+                    while (iterator.hasNext()) {
+                        User next = iterator.next();
+                        sb.append("<p>name : " + next.getName() + "</p>");
+                        sb.append("<p>email : " + next.getEmail() + "</p>");
+                    }
+                    response200Header(dos, sb.toString().getBytes().length);
+                    responseBody(dos, sb.toString().getBytes());
+                } else {
+                    log.error("error! /user/list -> user not login");
+                    response302HeaderWithLocation(dos, null);
+                }
+                body = Files.readAllBytes(new File("./webapp" + url).toPath());
+                response200Header(dos, body.length);
                 responseBody(dos, body);
             } else {
                 body = Files.readAllBytes(new File("./webapp" + url).toPath());
-                DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length);
                 responseBody(dos, body);
             }
