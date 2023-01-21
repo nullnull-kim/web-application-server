@@ -1,5 +1,6 @@
 package model;
 
+import enums.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
@@ -37,7 +38,7 @@ public class HttpRequest {
                 line = br.readLine();
             }
 
-            if ("POST".equals(getMethod())) {
+            if (getMethod().isPost()) {
                 String body = IOUtils.readData(br, Integer.parseInt(header.get("Content-Length")));
                 parameter = HttpRequestUtils.parseQueryString(body);
             } else {
@@ -106,7 +107,7 @@ public class HttpRequest {
 //                .forEach(query -> this.parameter.put(query[0], query[1]));
 //    }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
 //        return method;
         return requestLine.getMethod();
     }
