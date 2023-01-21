@@ -3,12 +3,14 @@ package webserver;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import db.DataBase;
 import model.HttpRequest;
+import model.HttpResponse;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public class RequestHandler extends Thread {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
 
             HttpRequest request = new HttpRequest(in);
+            HttpResponse response = new HttpResponse(out);
             String path = getDefaultPath(request.getPath());
 
             DataOutputStream dos = new DataOutputStream(out);
@@ -42,31 +45,38 @@ public class RequestHandler extends Thread {
                         request.getParameter("name"),
                         request.getParameter("email")
                 );
+                logger.debug("user : {}", user);
                 DataBase.addUser(user);
-                response302Header(dos);
+                response.sendRedirect("/index.html");
             } else if ("/user/login".equals(path)) {
                 User user = DataBase.findUserById(request.getParameter("userId"));
                 if (user == null) {
-                    logger.error("id not found");
-                    response404Header(dos);
+                    response.sendRedirect("/user/login_failed.html");
                 } else if (user.getPassword().equals(request.getParameter("password"))) {
-                    logger.debug("login success");
-                    response302HeaderWithCookie(dos, null, "logined=true");
+                    response.addHeader("Set-Cookie", "logined=true");
+                    response.sendRedirect("/index.html");
                 } else {
-                    logger.error("password not matched");
-                    response401Header(dos);
+                    response.sendRedirect("/user/login_failed.html");
                 }
             } else if ("/user/list".equals(path)) {
                 if (!isLogin(request.getHeader("Cookie"))) {
-                    responseResource(out, "/user/login.html");
-                } else {
-                    logger.error("error! /user/list -> user not login");
-                    responseResource(out, null);
+                    response.sendRedirect("/user/login.html");
+                    return;
+//                    responseResource(out, "/user/login.html");
                 }
-            } else if (path.endsWith(".css")) {
-                responseCssResource(out, path);
+                Collection<User> users = DataBase.findAll();
+                StringBuilder sb = new StringBuilder();
+                sb.append("<table border='1'>");
+                for (User user : users) {
+                    sb.append("<tr>");
+                    sb.append("<td>" + user.getUserId() + "</td>");
+                    sb.append("<td>" + user.getName() + "</td>");
+                    sb.append("<td>" + user.getEmail() + "</td>");
+                    sb.append("</tr>");
+                }
+                response.forwardBody(sb.toString());
             } else {
-                responseResource(out, path);
+                response.forward(path);
             }
 //
 //            BufferedReader br = new BufferedReader(new InputStreamReader(in));
