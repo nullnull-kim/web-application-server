@@ -1,5 +1,7 @@
 package model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 
 import java.io.BufferedReader;
@@ -13,6 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class HttpRequest {
+    private final static Logger logger = LoggerFactory.getLogger(HttpRequest.class);
     private String method;
     private String path;
     private Map<String, String> header = new HashMap<>();
@@ -20,19 +23,21 @@ public class HttpRequest {
     private Function<String, String[]> function1 = (queries) -> queries.split("&");
     private Function<String, String[]> function2 = (queries) -> queries.split("=");
     public HttpRequest(InputStream in) throws IOException {
-        BufferedReader bf = new BufferedReader(new InputStreamReader(in));
+        BufferedReader bf = new BufferedReader(new InputStreamReader(in, "UTF-8"));
         String firstLine = bf.readLine();
         if(firstLine == null) return;
+
         String[] split = firstLine.split(" ");
         if(split.length != 3 ) return;
 
         this.method = split[0];
 
-        while (!"".equals(firstLine)) {
-            firstLine = bf.readLine();
-            if(null == firstLine || "".equals(firstLine)) break;
-            String[] headers = firstLine.split(": ");
-            this.header.put(headers[0], headers[1]);
+        String line = bf.readLine();
+        while (!"".equals(line)) {
+            if(null == line || "".equals(line)) break;
+            String[] headers = line.split(":");
+            this.header.put(headers[0].trim(), headers[1].trim());
+            line = bf.readLine();
         }
 
         if ("GET".equals(method)) {
