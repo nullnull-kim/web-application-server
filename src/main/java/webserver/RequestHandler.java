@@ -2,19 +2,14 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.util.*;
 
 import controller.Controller;
 import controller.RequestMapping;
-import db.DataBase;
-import model.HttpRequest;
-import model.HttpResponse;
-import model.User;
+import http.HttpCookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
-import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
@@ -32,8 +27,8 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
 
-            HttpRequest request = new HttpRequest(in);
-            HttpResponse response = new HttpResponse(out);
+            HttpCookie.HttpRequest request = new HttpCookie.HttpRequest(in);
+            HttpCookie.HttpResponse response = new HttpCookie.HttpResponse(out);
 
             if (getSessionId(request.getHeader("Cookie")) == null) {
                 response.addHeader("Set-Cookie", "JSESSIONID=" + UUID.randomUUID());
