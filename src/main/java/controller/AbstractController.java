@@ -1,12 +1,13 @@
 package controller;
 
 import enums.HttpMethod;
-import http.HttpCookie;
+import http.HttpRequest;
+import http.HttpResponse;
 
 public abstract class AbstractController implements Controller{
 
     @Override
-    public void service(HttpCookie.HttpRequest request, HttpCookie.HttpResponse response) {
+    public void service(HttpRequest request, HttpResponse response) {
         HttpMethod method = request.getMethod();
         if (method.isPost()) {
             doPost(request, response);
@@ -15,7 +16,7 @@ public abstract class AbstractController implements Controller{
         }
     }
 
-    protected void doPost(HttpCookie.HttpRequest request, HttpCookie.HttpResponse response){}
+    protected void doPost(HttpRequest request, HttpResponse response){}
 
-    protected void doGet(HttpCookie.HttpRequest request, HttpCookie.HttpResponse response){}
+    protected void doGet(HttpRequest request, HttpResponse response){}
 }

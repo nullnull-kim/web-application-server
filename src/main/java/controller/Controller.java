@@ -1,7 +1,8 @@
 package controller;
 
-import http.HttpCookie;
+import http.HttpRequest;
+import http.HttpResponse;
 
 public interface Controller {
-    void service(HttpCookie.HttpRequest request, HttpCookie.HttpResponse response);
+    void service(HttpRequest request, HttpResponse response);
 }

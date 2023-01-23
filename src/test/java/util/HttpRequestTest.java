@@ -2,7 +2,7 @@ package util;
 
 
 import enums.HttpMethod;
-import http.HttpCookie;
+import http.HttpRequest;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,7 +17,7 @@ public class HttpRequestTest {
     @Test
     public void request_GET() throws Exception {
         InputStream in = new FileInputStream(new File(testDirectory + "Http_GET.txt"));
-        HttpCookie.HttpRequest request = new HttpCookie.HttpRequest(in);
+        HttpRequest request = new HttpRequest(in);
 
         assertEquals(HttpMethod.GET, request.getMethod());
         assertEquals("/user/create", request.getPath());
@@ -28,7 +28,7 @@ public class HttpRequestTest {
     @Test
     public void request_POST() throws Exception {
         InputStream in = new FileInputStream(new File(testDirectory + "Http_POST.txt"));
-        HttpCookie.HttpRequest request = new HttpCookie.HttpRequest(in);
+        HttpRequest request = new HttpRequest(in);
 
         assertEquals(HttpMethod.POST, request.getMethod());
         assertEquals("/user/create", request.getPath());
